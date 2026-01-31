@@ -5,29 +5,92 @@ on:
     branches: [ "main" ]
     tags: [ "v*" ]
   workflow_dispatch:
+    inputs:
+      linux_amd64:
+        description: 'Build Linux/amd64'
+        type: boolean
+        default: true
+      linux_arm64:
+        description: 'Build Linux/arm64'
+        type: boolean
+        default: true
+      linux_arm_v7:
+        description: 'Build Linux/arm/v7'
+        type: boolean
+        default: true
+      windows_amd64:
+        description: 'Build Windows/amd64'
+        type: boolean
+        default: true
+      windows_arm64:
+        description: 'Build Windows/arm64'
+        type: boolean
+        default: true
+      darwin_amd64:
+        description: 'Build macOS/amd64'
+        type: boolean
+        default: true
+      darwin_arm64:
+        description: 'Build macOS/arm64'
+        type: boolean
+        default: true
 
 jobs:
+  matrix-prep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const inputs = context.payload.inputs || {};
+            const isPush = context.eventName === 'push';
+            
+            const allTargets = [
+              { goos: 'linux', goarch: 'amd64' },
+              { goos: 'linux', goarch: 'arm64' },
+              { goos: 'linux', goarch: 'arm', goarm: '7' },
+              { goos: 'windows', goarch: 'amd64' },
+              { goos: 'windows', goarch: 'arm64' },
+              { goos: 'darwin', goarch: 'amd64' },
+              { goos: 'darwin', goarch: 'arm64' },
+            ];
+            
+            let matrix = [];
+            
+            if (isPush) {
+              matrix = allTargets;
+            } else {
+              if (inputs.linux_amd64 === 'true') matrix.push(allTargets[0]);
+              if (inputs.linux_arm64 === 'true') matrix.push(allTargets[1]);
+              if (inputs.linux_arm_v7 === 'true') matrix.push(allTargets[2]);
+              if (inputs.windows_amd64 === 'true') matrix.push(allTargets[3]);
+              if (inputs.windows_arm64 === 'true') matrix.push(allTargets[4]);
+              if (inputs.darwin_amd64 === 'true') matrix.push(allTargets[5]);
+              if (inputs.darwin_arm64 === 'true') matrix.push(allTargets[6]);
+              
+              // Fallback: if nothing selected, maybe build everything or error?
+              // Let's default to empty array which will skip the job or handle gracefully?
+              // GitHub Actions strategy matrix cannot be empty.
+              if (matrix.length === 0) {
+                 // Force at least one or fail? Let's just default to all if user selects nothing, weird UX but safer.
+                 // Or better, let it allow empty and it just won't run.
+                 // Changing behavior: if empty, output empty array.
+              }
+            }
+            
+            core.setOutput('matrix', matrix);
+
   build:
+    needs: matrix-prep
+    if: ${{ toJson(fromJson(needs.matrix-prep.outputs.matrix)) != '[]' }}
     name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: linux
-            goarch: arm
-            goarm: 7
-          - goos: windows
-            goarch: amd64
-          - goos: windows
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
+        include: ${{ fromJson(needs.matrix-prep.outputs.matrix) }}
 
     steps:
     - uses: actions/checkout@v4
