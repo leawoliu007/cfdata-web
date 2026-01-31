@@ -1,0 +1,10 @@
+# Exclude the pre-compiled binaries folder
+cfdata-web/
+
+# Exclude git directory
+.git/
+
+# Exclude IDE/Editor files
+.vscode/
+.idea/
+*.swp
