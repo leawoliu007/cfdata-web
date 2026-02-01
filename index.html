@@ -521,11 +521,18 @@
                     <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
                         点击"测速"按钮对单个IP进行下载速度测试。点击IP可复制。
                     </p>
-                    <button id="btnTestAll" class="action-btn"
-                        style="background-color: var(--primary-color); padding: 8px 16px; font-size: 13px;"
-                        onclick="startSpeedTestAll()">
-                        🚀 一键全部测速
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="btnExport" class="action-btn"
+                            style="background-color: var(--success-color); padding: 8px 16px; font-size: 13px;"
+                            onclick="exportResults()">
+                            📥 导出结果
+                        </button>
+                        <button id="btnTestAll" class="action-btn"
+                            style="background-color: var(--primary-color); padding: 8px 16px; font-size: 13px;"
+                            onclick="startSpeedTestAll()">
+                            🚀 一键全部测速
+                        </button>
+                    </div>
                 </div>
                 <div class="scroll-table-lg">
                     <table id="testTable">
@@ -867,6 +874,22 @@
             const ipId = res.IP.replace(/:/g, '_').replace(/\./g, '_');
             const avgLat = (res.AvgLatency / 1000000).toFixed(0);
 
+            // Check if speed data is available
+            let speedCellContent;
+            if (res.Speed) {
+                // Display the speed result
+                let color = '#1f2937';
+                if (res.Speed.includes('MB/s')) {
+                    const val = parseFloat(res.Speed);
+                    if (val > 10) color = '#10b981';
+                    else if (val > 5) color = '#f59e0b';
+                }
+                speedCellContent = `<strong style="color:${color}">${res.Speed}</strong>`;
+            } else {
+                // Display the test button
+                speedCellContent = `<button class="action-btn" id="btn-speed-${ipId}" onclick="runSpeedTest('${res.IP}')">测速</button>`;
+            }
+
             const row = `<tr>
                 <td><span class="copy-ip" onclick="copyToClipboard('${res.IP}', this)" title="点击复制IP" style="font-weight:500">${res.IP}</span></td>
                 <td>${(res.LossRate * 100).toFixed(0)}%</td>
@@ -874,7 +897,7 @@
                 <td>${(res.MaxLatency / 1000000).toFixed(0)} ms</td>
                 <td style="color:${getLatencyColor(avgLat)}">${avgLat} ms</td>
                 <td id="speed-cell-${ipId}">
-                    <button class="action-btn" id="btn-speed-${ipId}" onclick="runSpeedTest('${res.IP}')">测速</button>
+                    ${speedCellContent}
                 </td>
             </tr>`;
             document.querySelector('#testTable tbody').insertAdjacentHTML('beforeend', row);
@@ -973,6 +996,47 @@
             log("批量测速完成，已按速度排序");
         }
 
+
+
+        function exportResults() {
+            if (testData.length === 0) {
+                alert("没有可导出的数据，请先进行详细测试");
+                return;
+            }
+
+            // Sort by speed (descending), then by loss, then by latency
+            const sortedData = [...testData].sort((a, b) => {
+                const speedA = a.SpeedNum || 0;
+                const speedB = b.SpeedNum || 0;
+                if (speedA !== speedB) return speedB - speedA;
+                if (a.LossRate !== b.LossRate) return a.LossRate - b.LossRate;
+                return a.AvgLatency - b.AvgLatency;
+            });
+
+            // Generate CSV content
+            let csvContent = "IP地址,平均延迟(ms),速度\n";
+            sortedData.forEach(item => {
+                const ip = item.IP;
+                const avgLatency = (item.AvgLatency / 1000000).toFixed(0);
+                const speed = item.Speed || "未测速";
+                csvContent += `${ip},${avgLatency},${speed}\n`;
+            });
+
+            // Create blob and download
+            const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", `cloudflare_ip_results_${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            log(`已导出 ${sortedData.length} 条测试结果`);
+        }
 
         function updateBadge(id, count) {
             document.getElementById(id).textContent = count;

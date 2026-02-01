@@ -778,9 +778,9 @@ func getRandomIPv4s(ipList []string) []string {
 		// 1. 解析 CIDR
 		_, ipNet, err := net.ParseCIDR(cidr)
 		if err != nil {
-			// 尝试补充默认掩码 /24 处理旧数据格式（如果有必要）
+			// 尝试补充默认掩码 /32 处理旧数据格式（如果有必要）
 			if !strings.Contains(cidr, "/") {
-				_, ipNet, err = net.ParseCIDR(cidr + "/24")
+				_, ipNet, err = net.ParseCIDR(cidr + "/32")
 			}
 			if err != nil {
 				continue
@@ -834,7 +834,7 @@ func getRandomIPv6s(ipList []string) []string {
 		if err != nil {
 			// 尝试兜底 /48 (常见CF段)
 			if !strings.Contains(cidr, "/") {
-				_, ipNet, err = net.ParseCIDR(cidr + "/48")
+				_, ipNet, err = net.ParseCIDR(cidr + "/128")
 			}
 			if err != nil {
 				continue
