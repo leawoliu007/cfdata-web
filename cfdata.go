@@ -626,30 +626,17 @@ func runSpeedTest(ws *websocket.Conn, ip string, port int) {
 
 	buf := make([]byte, 32*1024)
 	var totalBytes int64
-	var maxSpeed float64
 	timeout := time.After(5 * time.Second)
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
-	lastBytes := int64(0)
-	lastTime := start
 	done := false
 	for !done {
 		select {
 		case <-timeout:
 			done = true
 		case <-ticker.C:
-			now := time.Now()
-			duration := now.Sub(lastTime).Seconds()
-			if duration > 0 {
-				bytesDiff := totalBytes - lastBytes
-				currentSpeed := float64(bytesDiff) / duration / 1024 / 1024
-				if currentSpeed > maxSpeed {
-					maxSpeed = currentSpeed
-				}
-			}
-			lastBytes = totalBytes
-			lastTime = now
+			// ticker仅用于检测超时，不再计算瞬时速度
 		default:
 			n, err := resp.Body.Read(buf)
 			if n > 0 {
@@ -661,7 +648,13 @@ func runSpeedTest(ws *websocket.Conn, ip string, port int) {
 		}
 	}
 
-	speedStr := fmt.Sprintf("%.2f MB/s", maxSpeed)
+	// 计算平均速度：总下载字节数 / 总耗时
+	totalDuration := time.Since(start).Seconds()
+	var avgSpeed float64
+	if totalDuration > 0 {
+		avgSpeed = float64(totalBytes) / totalDuration / 1024 / 1024
+	}
+	speedStr := fmt.Sprintf("%.2f MB/s", avgSpeed)
 	sendWSMessage(ws, "speed_test_result", map[string]string{
 		"ip":    ip,
 		"speed": speedStr,
