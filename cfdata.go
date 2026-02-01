@@ -313,9 +313,381 @@ func runUnifiedTask(ws *websocket.Conn, ipType int, scanMaxThreads int) {
 	scanResults = []ScanResult{}
 	scanMutex.Unlock()
 
-	// ... 省略部分代码 ...
 
-// ... (此处不需要改动) ...
+	sendWSMessage(ws, "log", fmt.Sprintf("正在扫描 %d 个 IP 地址...", len(ipList)))
+
+	var wg sync.WaitGroup
+	wg.Add(len(ipList))
+	thread := make(chan struct{}, scanMaxThreads)
+	var count int
+	total := len(ipList)
+
+	for _, ip := range ipList {
+		thread <- struct{}{}
+		go func(ip string) {
+			defer func() {
+				<-thread
+				wg.Done()
+				scanMutex.Lock()
+				count++
+				currentCount := count
+				scanMutex.Unlock()
+				if currentCount%10 == 0 || currentCount == total {
+					sendWSMessage(ws, "scan_progress", map[string]int{
+						"current": currentCount,
+						"total":   total,
+					})
+				}
+			}()
+
+			dialer := &net.Dialer{Timeout: 1 * time.Second}
+			start := time.Now()
+			conn, err := dialer.Dial("tcp", net.JoinHostPort(ip, "80"))
+			if err != nil {
+				return
+			}
+			defer conn.Close()
+			tcpDuration := time.Since(start)
+
+			client := http.Client{
+				Transport: &http.Transport{
+					Dial: func(network, addr string) (net.Conn, error) { return conn, nil },
+				},
+				Timeout: 1 * time.Second,
+			}
+
+			requestURL := "http://" + net.JoinHostPort(ip, "80") + "/cdn-cgi/trace"
+			req, _ := http.NewRequest("GET", requestURL, nil)
+			req.Header.Set("User-Agent", "Mozilla/5.0")
+			req.Close = true
+			resp, err := client.Do(req)
+			if err != nil {
+				return
+			}
+			bodyBytes, err := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err != nil {
+				return
+			}
+			bodyStr := string(bodyBytes)
+			if strings.Contains(bodyStr, "uag=Mozilla/5.0") {
+				regex := regexp.MustCompile(`colo=([A-Z]+)`)
+				matches := regex.FindStringSubmatch(bodyStr)
+				if len(matches) > 1 {
+					dataCenter := matches[1]
+					loc := locationMap[dataCenter]
+					res := ScanResult{
+						IP:          ip,
+						DataCenter:  dataCenter,
+						Region:      loc.Region,
+						City:        loc.City,
+						LatencyStr:  fmt.Sprintf("%d ms", tcpDuration.Milliseconds()),
+						TCPDuration: tcpDuration,
+					}
+					scanMutex.Lock()
+					scanResults = append(scanResults, res)
+					scanMutex.Unlock()
+					sendWSMessage(ws, "scan_result", res)
+				}
+			}
+		}(ip)
+	}
+	wg.Wait()
+
+	// ---------------- Bug Fix: 检查是否有结果 ----------------
+	scanMutex.Lock()
+	resultsCount := len(scanResults)
+	scanMutex.Unlock()
+
+	if resultsCount == 0 {
+		sendWSMessage(ws, "error", "扫描完成，但未发现任何有效IP。请检查网络状态或尝试更换IP类型/增加延迟阈值。")
+		return
+	}
+	// ------------------------------------------------------
+
+	scanMutex.Lock()
+	sort.Slice(scanResults, func(i, j int) bool {
+		return scanResults[i].TCPDuration < scanResults[j].TCPDuration
+	})
+	scanMutex.Unlock()
+
+	dcMap := make(map[string]*DataCenterInfo)
+	scanMutex.Lock()
+	for _, res := range scanResults {
+		if _, ok := dcMap[res.DataCenter]; !ok {
+			dcMap[res.DataCenter] = &DataCenterInfo{
+				DataCenter: res.DataCenter,
+				City:       res.City,
+				IPCount:    0,
+				MinLatency: 999999,
+			}
+		}
+		info := dcMap[res.DataCenter]
+		info.IPCount++
+		lat, _ := strconv.Atoi(strings.TrimSuffix(res.LatencyStr, " ms"))
+		if lat < info.MinLatency {
+			info.MinLatency = lat
+		}
+	}
+	scanMutex.Unlock()
+
+	var dcList []DataCenterInfo
+	for _, info := range dcMap {
+		dcList = append(dcList, *info)
+	}
+	sort.Slice(dcList, func(i, j int) bool {
+		return dcList[i].MinLatency < dcList[j].MinLatency
+	})
+
+	sendWSMessage(ws, "log", "扫描完成，请选择数据中心进行详细测试")
+	sendWSMessage(ws, "scan_complete_wait_dc", dcList)
+}
+
+func runDetailedTest(ws *websocket.Conn, selectedDC string, port int, delay int) {
+	var testIPList []string
+	scanMutex.Lock()
+	for _, res := range scanResults {
+		if selectedDC == "" || res.DataCenter == selectedDC {
+			testIPList = append(testIPList, res.IP)
+		}
+	}
+	scanMutex.Unlock()
+
+	if len(testIPList) == 0 {
+		sendWSMessage(ws, "error", "没有找到可测试的 IP 地址")
+		return
+	}
+
+	sendWSMessage(ws, "log", fmt.Sprintf("开始对 %s 的 %d 个 IP 进行详细测试...", selectedDC, len(testIPList)))
+
+	var results []TestResult
+	var resMutex sync.Mutex
+
+	var wg sync.WaitGroup
+	wg.Add(len(testIPList))
+	thread := make(chan struct{}, 50)
+	var count int
+	total := len(testIPList)
+
+	for _, ip := range testIPList {
+		thread <- struct{}{}
+		go func(ip string) {
+			defer func() {
+				<-thread
+				wg.Done()
+				scanMutex.Lock()
+				count++
+				currentCount := count
+				scanMutex.Unlock()
+				if currentCount%5 == 0 || currentCount == total {
+					sendWSMessage(ws, "test_progress", map[string]int{
+						"current": currentCount,
+						"total":   total,
+					})
+				}
+			}()
+
+			dialer := &net.Dialer{Timeout: time.Duration(delay) * time.Millisecond}
+			successCount := 0
+			totalLatency := time.Duration(0)
+			minLatency := time.Duration(math.MaxInt64)
+			maxLatency := time.Duration(0)
+
+			for i := 0; i < 10; i++ {
+				start := time.Now()
+				conn, err := dialer.Dial("tcp", net.JoinHostPort(ip, strconv.Itoa(port)))
+				if err != nil {
+					continue
+				}
+				latency := time.Since(start)
+				if latency > time.Duration(delay)*time.Millisecond {
+					conn.Close()
+					continue
+				}
+				successCount++
+				totalLatency += latency
+				if latency < minLatency {
+					minLatency = latency
+				}
+				if latency > maxLatency {
+					maxLatency = latency
+				}
+				conn.Close()
+			}
+
+			if successCount > 0 {
+				avgLatency := totalLatency / time.Duration(successCount)
+				lossRate := float64(10-successCount) / 10.0
+				res := TestResult{
+					IP:         ip,
+					MinLatency: minLatency,
+					MaxLatency: maxLatency,
+					AvgLatency: avgLatency,
+					LossRate:   lossRate,
+				}
+				// 实时发送一个结果给前端（仅作展示）
+				sendWSMessage(ws, "test_result", res)
+
+				// 收集结果
+				resMutex.Lock()
+				results = append(results, res)
+				resMutex.Unlock()
+			}
+		}(ip)
+	}
+	wg.Wait()
+
+	// ==========================================
+	// 后端排序逻辑: 丢包 -> 最小(ms取整) -> 最大 -> 平均
+	// ==========================================
+	sort.Slice(results, func(i, j int) bool {
+		// 1. 丢包率 (升序)
+		if results[i].LossRate != results[j].LossRate {
+			return results[i].LossRate < results[j].LossRate
+		}
+
+		// 2. 最小延迟 (毫秒取整比较, 升序)
+		// 核心逻辑：将纳秒转为毫秒整数，忽略微小差异
+		minI := results[i].MinLatency / time.Millisecond
+		minJ := results[j].MinLatency / time.Millisecond
+		if minI != minJ {
+			return minI < minJ
+		}
+
+		// 3. 最大延迟 (升序)
+		// 只有在最小延迟的毫秒数一样时，才比较最大延迟
+		if results[i].MaxLatency != results[j].MaxLatency {
+			return results[i].MaxLatency < results[j].MaxLatency
+		}
+
+		// 4. 平均延迟 (升序)
+		return results[i].AvgLatency < results[j].AvgLatency
+	})
+
+	// 发送排序后的完整列表给前端
+	sendWSMessage(ws, "test_complete", results)
+}
+
+func runSpeedTest(ws *websocket.Conn, ip string, port int) {
+	sendWSMessage(ws, "log", fmt.Sprintf("开始对 IP %s 端口 %d 进行测速...", ip, port))
+	scheme := "http"
+	if port == 443 || port == 2053 || port == 2083 || port == 2087 || port == 2096 || port == 8443 {
+		scheme = "https"
+	}
+
+	testURL := speedTestURL
+	if !strings.HasPrefix(testURL, "http://") && !strings.HasPrefix(testURL, "https://") {
+		testURL = scheme + "://" + testURL
+	}
+
+	parsedURL, err := url.Parse(testURL)
+	if err != nil {
+		sendWSMessage(ws, "speed_test_result", map[string]string{
+			"ip":    ip,
+			"speed": "URL解析错误",
+		})
+		return
+	}
+	hostname := parsedURL.Hostname()
+
+	client := http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return net.Dial("tcp", net.JoinHostPort(ip, strconv.Itoa(port)))
+			},
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
+		Timeout: 15 * time.Second,
+	}
+
+	fullURL := fmt.Sprintf("%s://%s%s", scheme, hostname, parsedURL.RequestURI())
+	req, _ := http.NewRequest("GET", fullURL, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+
+	start := time.Now()
+	resp, err := client.Do(req)
+	if err != nil {
+		sendWSMessage(ws, "speed_test_result", map[string]string{
+			"ip":    ip,
+			"speed": "连接错误",
+		})
+		sendWSMessage(ws, "log", "测速失败: "+err.Error())
+		return
+	}
+	defer resp.Body.Close()
+
+	buf := make([]byte, 32*1024)
+	var totalBytes int64
+	var maxSpeed float64
+	timeout := time.After(5 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	lastBytes := int64(0)
+	lastTime := start
+	done := false
+	for !done {
+		select {
+		case <-timeout:
+			done = true
+		case <-ticker.C:
+			now := time.Now()
+			duration := now.Sub(lastTime).Seconds()
+			if duration > 0 {
+				bytesDiff := totalBytes - lastBytes
+				currentSpeed := float64(bytesDiff) / duration / 1024 / 1024
+				if currentSpeed > maxSpeed {
+					maxSpeed = currentSpeed
+				}
+			}
+			lastBytes = totalBytes
+			lastTime = now
+		default:
+			n, err := resp.Body.Read(buf)
+			if n > 0 {
+				totalBytes += int64(n)
+			}
+			if err != nil {
+				done = true
+			}
+		}
+	}
+
+	speedStr := fmt.Sprintf("%.2f MB/s", maxSpeed)
+	sendWSMessage(ws, "speed_test_result", map[string]string{
+		"ip":    ip,
+		"speed": speedStr,
+	})
+	sendWSMessage(ws, "log", fmt.Sprintf("IP %s 测速完成: %s", ip, speedStr))
+}
+
+func getURLContent(targetURL string) (string, error) {
+	resp, err := http.Get(targetURL)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+// getFileContent 读取本地文件内容
+func getFileContent(filename string) (string, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+// saveToFile 保存内容到文件
+func saveToFile(filename, content string) error {
+	return os.WriteFile(filename, []byte(content), 0644)	
+
+}
 
 func parseIPList(content string) []string {
 	scanner := bufio.NewScanner(strings.NewReader(content))
@@ -376,7 +748,6 @@ func resolveDomains(list []string, ipType int) []string {
 	return result
 }
 
-// 辅助函数：将 IP 转换为 uint32
 
 // 辅助函数：将 IP 转换为 uint32
 func ipToUint32(ip net.IP) uint32 {
