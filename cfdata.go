@@ -728,14 +728,18 @@ func resolveDomains(list []string, ipType int) []string {
 		}
 
 		// 3. 认为是域名，进行解析
-		// fmt.Printf("正在解析域名: %s\n", item)
+		fmt.Printf("正在解析域名: %s\n", item)
 		ips, err := net.LookupIP(item)
 		if err != nil {
-			// 解析失败，跳过
+			fmt.Printf("  解析失败: %v\n", err)
 			continue
 		}
 
+		fmt.Printf("  解析成功，共获得 %d 个IP:\n", len(ips))
+		var filtered []string
 		for _, resolvedIP := range ips {
+			fmt.Printf("    - %s", resolvedIP.String())
+			
 			// 根据 ipType 过滤
 			// ipType 4: IPv4 (To4() != nil)
 			// ipType 6: IPv6 (To4() == nil)
@@ -744,13 +748,26 @@ func resolveDomains(list []string, ipType int) []string {
 			if ipType == 6 {
 				if !isIPv4 {
 					result = append(result, resolvedIP.String())
+					filtered = append(filtered, resolvedIP.String())
+					fmt.Printf(" [保留-IPv6]\n")
+				} else {
+					fmt.Printf(" [跳过-IPv4]\n")
 				}
 			} else {
 				// 默认为 IPv4
 				if isIPv4 {
 					result = append(result, resolvedIP.String())
+					filtered = append(filtered, resolvedIP.String())
+					fmt.Printf(" [保留-IPv4]\n")
+				} else {
+					fmt.Printf(" [跳过-IPv6]\n")
 				}
 			}
+		}
+		if len(filtered) > 0 {
+			fmt.Printf("  过滤后保留 %d 个IP\n", len(filtered))
+		} else {
+			fmt.Printf("  过滤后无符合条件的IP\n")
 		}
 	}
 	return result
