@@ -1,9 +1,9 @@
 name: Go Build Multi-Arch
 
 on:
-  push:
-    branches: [ "main" ]
-    tags: [ "v*" ]
+#  push:
+#    branches: [ "main" ]
+#    tags: [ "v*" ]
   workflow_dispatch:
     inputs:
       linux_amd64:
