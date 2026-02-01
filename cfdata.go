@@ -184,6 +184,14 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			}
 			json.Unmarshal(request.Data, &params)
 			go runSpeedTest(ws, params.IP, params.Port)
+
+		case "start_speed_test_all":
+			var params struct {
+				IPs  []string `json:"ips"`
+				Port int      `json:"port"`
+			}
+			json.Unmarshal(request.Data, &params)
+			go runSpeedTestAll(ws, params.IPs, params.Port)
 		}
 	}
 }
@@ -877,4 +885,22 @@ func getRandomIPv6s(ipList []string) []string {
 		}
 	}
 	return randomIPs
+}
+
+func runSpeedTestAll(ws *websocket.Conn, ips []string, port int) {
+	sendWSMessage(ws, "log", fmt.Sprintf("开始批量测速，共 %d 个IP，请耐心等待...", len(ips)))
+	
+	for i, ip := range ips {
+		// 检查连接是否还活跃（通过简单的写操作尝试，或者依赖ws.WriteJSON的错误返回，但这里是在循环中）
+		// 由于 runSpeedTest 会发送消息，如果连接断开它会报错，我们这里简单处理
+		
+		sendWSMessage(ws, "log", fmt.Sprintf("[%d/%d] 正在测速: %s", i+1, len(ips), ip))
+		runSpeedTest(ws, ip, port)
+		
+		// 简单的间隔，避免瞬间由于系统资源限制导致下一个请求失败
+		time.Sleep(200 * time.Millisecond)
+	}
+	
+	sendWSMessage(ws, "log", "所有IP测速完成")
+	sendWSMessage(ws, "speed_test_all_complete", nil)
 }

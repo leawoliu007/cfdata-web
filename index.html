@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -85,7 +86,8 @@
             font-weight: 500;
         }
 
-        select, input {
+        select,
+        input {
             padding: 10px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -97,7 +99,8 @@
             box-sizing: border-box;
         }
 
-        select:focus, input:focus {
+        select:focus,
+        input:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
@@ -153,8 +156,13 @@
         }
 
         @keyframes stripe {
-            0% { background-position: 0 0; }
-            100% { background-position: 20px 20px; }
+            0% {
+                background-position: 0 0;
+            }
+
+            100% {
+                background-position: 20px 20px;
+            }
         }
 
         /* 选项卡 */
@@ -181,12 +189,25 @@
             border-bottom-color: var(--primary-color);
         }
 
-        .tab-content { display: none; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* 内容区块 */
@@ -217,15 +238,21 @@
         }
 
         /* 表格样式 */
-        .scroll-table, .scroll-table-lg {
+        .scroll-table,
+        .scroll-table-lg {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             border: 1px solid var(--border-color);
             border-radius: 6px;
         }
 
-        .scroll-table { max-height: 300px; }
-        .scroll-table-lg { max-height: 500px; }
+        .scroll-table {
+            max-height: 300px;
+        }
+
+        .scroll-table-lg {
+            max-height: 500px;
+        }
 
         table {
             width: 100%;
@@ -234,7 +261,8 @@
             font-size: 14px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
@@ -249,8 +277,13 @@
             z-index: 1;
         }
 
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: #f3f4f6; }
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f3f4f6;
+        }
 
         /* 小按钮样式 */
         .action-btn {
@@ -263,10 +296,19 @@
             font-size: 12px;
             transition: opacity 0.2s;
         }
-        
-        .action-btn:hover { opacity: 0.9; }
-        .action-btn.selected { background-color: var(--success-color); }
-        .action-btn:disabled { background-color: #d1d5db; color: #9ca3af; }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .action-btn.selected {
+            background-color: var(--success-color);
+        }
+
+        .action-btn:disabled {
+            background-color: #d1d5db;
+            color: #9ca3af;
+        }
 
         /* 点击复制的样式 */
         .copy-ip {
@@ -275,10 +317,12 @@
             position: relative;
             transition: all 0.2s;
         }
+
         .copy-ip:hover {
             color: var(--primary-color);
             border-bottom-color: var(--primary-color);
         }
+
         .copy-ip:active {
             opacity: 0.7;
         }
@@ -295,34 +339,72 @@
             font-size: 12px;
             margin-top: 20px;
             line-height: 1.4;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         /* 状态标签 */
-        .test-status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-        .test-status.testing { background: #fef3c7; color: #d97706; }
-        .test-status.done { background: #d1fae5; color: #059669; }
+        .test-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .test-status.testing {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .test-status.done {
+            background: #d1fae5;
+            color: #059669;
+        }
 
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 15px; border-radius: 8px; }
-            h1 { font-size: 1.25rem; }
-            .controls { grid-template-columns: 1fr 1fr; padding: 15px; }
-            button#btnStart { margin-top: 10px; }
-            th, td { padding: 10px; font-size: 13px; }
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                border-radius: 8px;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .controls {
+                grid-template-columns: 1fr 1fr;
+                padding: 15px;
+            }
+
+            button#btnStart {
+                margin-top: 10px;
+            }
+
+            th,
+            td {
+                padding: 10px;
+                font-size: 13px;
+            }
         }
 
         @media (max-width: 480px) {
-            .controls { grid-template-columns: 1fr; gap: 10px; }
+            .controls {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Cloudflare IP Data</h1>
-        
+
         <div class="status-bar" id="status">正在连接服务器...</div>
-        
+
         <!-- 统一任务页面 -->
         <div class="controls">
             <div class="form-group">
@@ -332,7 +414,7 @@
                     <option value="6">IPv6</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label>并发数</label>
                 <input type="number" id="scanThreads" value="100" placeholder="默认100">
@@ -368,7 +450,7 @@
 
             <button onclick="startUnifiedTask()" id="btnStart">开始扫描与测试</button>
         </div>
-        
+
         <div class="progress-container" id="progressBox">
             <div class="progress-bar" id="progressBar">0%</div>
         </div>
@@ -383,7 +465,7 @@
             <!-- 数据中心汇总 -->
             <div class="section-box" id="dcSection" style="display:none;">
                 <h3>
-                    数据中心汇总 
+                    数据中心汇总
                     <span class="badge" id="dcCount">0</span>
                     <span id="currentTestDC" class="test-status" style="display:none;"></span>
                 </h3>
@@ -405,7 +487,7 @@
                     </table>
                 </div>
             </div>
-            
+
             <!-- 实时扫描结果 -->
             <div class="section-box">
                 <h3>实时扫描结果 <span class="badge" id="scanCount">0</span></h3>
@@ -430,13 +512,21 @@
         <div id="test" class="tab-content">
             <div class="section-box">
                 <h3>
-                    详细测试结果 
+                    详细测试结果
                     <span class="badge" id="testCount">0</span>
-                    <span id="testingDC" style="margin-left: auto; color: var(--text-secondary); font-size: 12px; font-weight: normal;"></span>
+                    <span id="testingDC"
+                        style="margin-left: auto; color: var(--text-secondary); font-size: 12px; font-weight: normal;"></span>
                 </h3>
-                <p style="margin: 0 0 15px 0; color: var(--text-secondary); font-size: 13px;">
-                    点击"测速"按钮对单个IP进行下载速度测试。点击IP可复制。
-                </p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
+                        点击"测速"按钮对单个IP进行下载速度测试。点击IP可复制。
+                    </p>
+                    <button id="btnTestAll" class="action-btn"
+                        style="background-color: var(--primary-color); padding: 8px 16px; font-size: 13px;"
+                        onclick="startSpeedTestAll()">
+                        🚀 一键全部测速
+                    </button>
+                </div>
                 <div class="scroll-table-lg">
                     <table id="testTable">
                         <thead>
@@ -464,21 +554,21 @@
         let ws;
         let scanResultsCount = 0;
         let testResultsCount = 0;
-        let dcList = []; 
-        let currentTestingDC = ''; 
-        let testedDCs = new Set(); 
-        
+        let dcList = [];
+        let currentTestingDC = '';
+        let testedDCs = new Set();
+
         let scanData = [];
         let testData = [];
 
         function connect() {
             ws = new WebSocket("ws://" + window.location.host + "/ws");
-            
+
             ws.onopen = () => {
                 updateStatus("已连接服务器", true);
                 log("已连接到服务器");
             };
-            
+
             ws.onclose = () => {
                 updateStatus("连接断开，3秒后重连...", false);
                 log("连接断开，正在重连...");
@@ -492,7 +582,7 @@
         }
 
         function handleMessage(msg) {
-            switch(msg.type) {
+            switch (msg.type) {
                 case 'log':
                     log(msg.data);
                     break;
@@ -522,6 +612,9 @@
                 case 'speed_test_result':
                     updateSpeedResult(msg.data);
                     break;
+                case 'speed_test_all_complete':
+                    onBatchTestComplete();
+                    break;
                 case 'task_complete':
                     log("任务全部完成");
                     resetButton("开始扫描与测试");
@@ -531,7 +624,7 @@
                 case 'error':
                     log("错误: " + msg.data);
                     resetButton("开始扫描与测试");
-                    
+
                     const pb = document.getElementById('progressBar');
                     pb.style.background = '#ef4444';
                     pb.style.width = '100%';
@@ -539,7 +632,7 @@
                     break;
             }
         }
-        
+
         function resetButton(text) {
             const btn = document.getElementById('btnStart');
             btn.disabled = false;
@@ -551,64 +644,64 @@
             const threads = parseInt(document.getElementById('scanThreads').value) || 100;
             const port = parseInt(document.getElementById('testPort').value);
             const delay = parseInt(document.getElementById('testDelay').value) || 500;
-            
+
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
             btn.textContent = "扫描进行中...";
-            
+
             document.querySelector('#scanTable tbody').innerHTML = '';
             document.querySelector('#testTable tbody').innerHTML = '';
             document.querySelector('#dcTable tbody').innerHTML = '';
             document.getElementById('dcSection').style.display = 'none';
-            
+
             const pb = document.getElementById('progressBar');
-            pb.style.background = ''; 
+            pb.style.background = '';
             pb.style.backgroundColor = '';
-            
+
             scanResultsCount = 0;
             testResultsCount = 0;
             dcList = [];
             testedDCs.clear();
             currentTestingDC = '';
-            
+
             scanData = [];
             testData = [];
-            
+
             updateBadge('scanCount', 0);
             updateBadge('testCount', 0);
             updateBadge('dcCount', 0);
-            
+
             switchTab('scan');
 
             ws.send(JSON.stringify({
                 type: 'start_task',
                 data: { ipType, threads, port, delay }
             }));
-            
+
             document.getElementById('progressBox').style.display = 'block';
             updateProgress(0, 100, "准备中");
         }
-        
+
         function showDCSelection(data) {
             dcList = data;
             renderDCTable();
-            
+
             document.getElementById('dcSection').style.display = 'block';
             resetButton("重新开始扫描");
             document.getElementById('progressBar').textContent = '扫描完成，请选择数据中心';
-            
+
             log("扫描完成，已按延迟排序，等待选择数据中心");
             document.getElementById('dcSection').scrollIntoView({ behavior: 'smooth' });
         }
-        
+
         function renderDCTable() {
             const tbody = document.querySelector('#dcTable tbody');
             tbody.innerHTML = '';
-            
+
             dcList.forEach(dc => {
                 const isTested = testedDCs.has(dc.DataCenter);
                 const isTesting = currentTestingDC === dc.DataCenter;
-                
+
                 let btnHtml;
                 if (isTesting) {
                     btnHtml = `<button class="action-btn" disabled>测试中...</button>`;
@@ -617,7 +710,7 @@
                 } else {
                     btnHtml = `<button class="action-btn" onclick="selectDC('${dc.DataCenter}')">选择测试</button>`;
                 }
-                
+
                 const row = `<tr id="dc-row-${dc.DataCenter}">
                     <td><strong>${dc.DataCenter}</strong></td>
                     <td>${dc.City}</td>
@@ -627,65 +720,65 @@
                 </tr>`;
                 tbody.insertAdjacentHTML('beforeend', row);
             });
-            
+
             updateBadge('dcCount', dcList.length);
         }
 
         function selectDC(dc) {
             const port = parseInt(document.getElementById('testPort').value);
             const delay = parseInt(document.getElementById('testDelay').value);
-            
+
             document.querySelector('#testTable tbody').innerHTML = '';
             testResultsCount = 0;
             updateBadge('testCount', 0);
-            
+
             testData = [];
-            
+
             currentTestingDC = dc;
             renderDCTable();
-            
+
             document.getElementById('testingDC').textContent = `当前: ${dc}`;
-            
+
             const statusSpan = document.getElementById('currentTestDC');
             statusSpan.textContent = `测试中: ${dc}`;
             statusSpan.className = 'test-status testing';
             statusSpan.style.display = 'inline-block';
-            
+
             ws.send(JSON.stringify({
                 type: 'start_test',
                 data: { dc, port, delay }
             }));
-            
+
             log("开始测试数据中心: " + dc);
             switchTab('test');
         }
-        
+
         function onTestComplete() {
             if (currentTestingDC) {
                 testedDCs.add(currentTestingDC);
                 log(`数据中心 ${currentTestingDC} 测试完成，已排序`);
             }
-            
+
             currentTestingDC = '';
             renderDCTable();
-            
+
             const statusSpan = document.getElementById('currentTestDC');
             statusSpan.textContent = '当前测试完成';
             statusSpan.className = 'test-status done';
-            
+
             document.getElementById('progressBar').textContent = '测试完成';
         }
 
         function runSpeedTest(ip) {
             const ipId = ip.replace(/:/g, '_').replace(/\./g, '_');
             const btn = document.getElementById('btn-speed-' + ipId);
-            if(btn) {
+            if (btn) {
                 btn.innerHTML = "⏳ 测速中...";
                 btn.disabled = true;
-                btn.style.backgroundColor = "#4b5563"; 
+                btn.style.backgroundColor = "#4b5563";
                 btn.style.color = "#ffffff";
             }
-            
+
             const port = parseInt(document.getElementById('testPort').value);
 
             ws.send(JSON.stringify({
@@ -701,7 +794,7 @@
                 element.textContent = "已复制!";
                 element.style.color = "var(--success-color)";
                 element.style.fontWeight = "bold";
-                
+
                 setTimeout(() => {
                     element.textContent = originalText;
                     element.style.color = "";
@@ -727,9 +820,9 @@
                 <td>${res.City}</td>
                 <td><span style="color:${getLatencyColor(res.LatencyStr)}">${res.LatencyStr}</span></td>
             </tr>`;
-            
+
             const tbody = document.querySelector('#scanTable tbody');
-            if(tbody.children.length > 500) tbody.removeChild(tbody.firstChild);
+            if (tbody.children.length > 500) tbody.removeChild(tbody.firstChild);
             tbody.insertAdjacentHTML('beforeend', row);
         }
 
@@ -739,7 +832,7 @@
             });
 
             const tbody = document.querySelector('#scanTable tbody');
-            tbody.innerHTML = ''; 
+            tbody.innerHTML = '';
 
             scanData.forEach(res => {
                 const row = `<tr>
@@ -763,7 +856,7 @@
         // 新增：渲染所有测试结果（用于后端排序后的完整刷新）
         function renderAllTestResults() {
             const tbody = document.querySelector('#testTable tbody');
-            tbody.innerHTML = ''; 
+            tbody.innerHTML = '';
             // 这里的 testData 已经是后端排好序的了
             testData.forEach(res => {
                 renderTestRow(res);
@@ -773,7 +866,7 @@
         function renderTestRow(res) {
             const ipId = res.IP.replace(/:/g, '_').replace(/\./g, '_');
             const avgLat = (res.AvgLatency / 1000000).toFixed(0);
-            
+
             const row = `<tr>
                 <td><span class="copy-ip" onclick="copyToClipboard('${res.IP}', this)" title="点击复制IP" style="font-weight:500">${res.IP}</span></td>
                 <td>${(res.LossRate * 100).toFixed(0)}%</td>
@@ -786,29 +879,101 @@
             </tr>`;
             document.querySelector('#testTable tbody').insertAdjacentHTML('beforeend', row);
         }
-        
+
         function getLatencyColor(latencyStr) {
             const latency = parseFloat(latencyStr);
-            if(isNaN(latency)) return 'inherit';
-            if(latency < 100) return '#10b981'; 
-            if(latency < 200) return '#f59e0b'; 
-            return '#ef4444'; 
+            if (isNaN(latency)) return 'inherit';
+            if (latency < 100) return '#10b981';
+            if (latency < 200) return '#f59e0b';
+            return '#ef4444';
         }
 
         function updateSpeedResult(data) {
             const ipId = data.ip.replace(/:/g, '_').replace(/\./g, '_');
             const cell = document.getElementById('speed-cell-' + ipId);
             if (cell) {
-                let color = '#1f2937';
-                if(data.speed.includes('MB/s')) {
-                    const val = parseFloat(data.speed);
-                    if(val > 10) color = '#10b981';
-                    else if(val > 5) color = '#f59e0b';
+                // 更新单元格内容
+                cell.innerHTML = `<strong>${data.speed}</strong>`;
+
+                // 更新内部数据
+                const textSpeed = data.speed; // e.g., "15.5 MB/s"
+                let numSpeed = 0;
+                if (textSpeed.includes("MB/s")) {
+                    numSpeed = parseFloat(textSpeed);
+                } else if (textSpeed.includes("KB/s")) {
+                    numSpeed = parseFloat(textSpeed) / 1024;
                 }
-                cell.innerHTML = `<strong style="color:${color}">${data.speed}</strong>`;
+
+                // 找到并在 testData 中更新
+                const item = testData.find(i => i.IP === data.ip);
+                if (item) {
+                    item.Speed = textSpeed;
+                    item.SpeedNum = numSpeed;
+                }
+
+                // 每次测速完都尝试重新排序（如果是批量测速中，这可能会导致行乱跳，体验不好）
+                // 建议：对于批量测速，只更新值，最后统一排序？
+                // 为了即时反馈，我们可以在批量测速模式下，只更新值，不重绘整个表？
+                // 或者简单点：如果正在批量测速，不自动重排。
+
+                if (!isBatchTesting) {
+                    // 单个测速不强制重排，用户体验更好
+                }
             }
         }
-        
+
+        let isBatchTesting = false;
+
+        function startSpeedTestAll() {
+            if (testData.length === 0) {
+                alert("没有可测速的IP");
+                return;
+            }
+
+            if (!confirm(`确定要对列表中的 ${testData.length} 个IP进行测速吗？\n注意：这将逐个进行，可能需要较长时间。`)) {
+                return;
+            }
+
+            isBatchTesting = true;
+            const btn = document.getElementById('btnTestAll');
+            btn.disabled = true;
+            btn.innerHTML = "⏳ 测速进行中...";
+
+            // 提取所有IP
+            const ips = testData.map(item => item.IP);
+            const port = parseInt(document.getElementById('testPort').value);
+
+            ws.send(JSON.stringify({
+                type: 'start_speed_test_all',
+                data: { ips, port }
+            }));
+        }
+
+        function onBatchTestComplete() {
+            isBatchTesting = false;
+            const btn = document.getElementById('btnTestAll');
+            btn.disabled = false;
+            btn.innerHTML = "🚀 一键全部测速";
+
+            // 排序：速度(降序) -> 丢包(升序) -> 延迟(升序)
+            testData.sort((a, b) => {
+                // 1. 速度 (降序)
+                const speedA = a.SpeedNum || 0;
+                const speedB = b.SpeedNum || 0;
+                if (speedA !== speedB) return speedB - speedA;
+
+                // 2. 丢包 (升序)
+                if (a.LossRate !== b.LossRate) return a.LossRate - b.LossRate;
+
+                // 3. 延迟 (升序)
+                return a.AvgLatency - b.AvgLatency;
+            });
+
+            renderAllTestResults();
+            log("批量测速完成，已按速度排序");
+        }
+
+
         function updateBadge(id, count) {
             document.getElementById(id).textContent = count;
         }
@@ -823,7 +988,7 @@
         function updateStatus(text, connected) {
             const el = document.getElementById('status');
             el.textContent = text;
-            if(connected) {
+            if (connected) {
                 el.style.borderLeftColor = 'var(--success-color)';
                 el.style.background = '#ecfdf5';
                 el.style.color = '#065f46';
@@ -844,14 +1009,14 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
+
             const tabs = document.querySelectorAll('.tab');
-            if(tabId === 'scan') {
+            if (tabId === 'scan') {
                 tabs[0].classList.add('active');
             } else {
                 tabs[1].classList.add('active');
             }
-            
+
             document.getElementById(tabId).classList.add('active');
         }
 
@@ -859,4 +1024,5 @@
         connect();
     </script>
 </body>
+
 </html>
